@@ -1,0 +1,185 @@
+1.shell是什么
+    shell也是一个程序 你打开命令行实际上就是开启了一个shell进程
+    shell的作用就是把你输入的命令提交给内核,然后把执行的结果返回给你
+
+    让我们来验证一下
+    ps -ef | grep zsh | grep -v rg
+    501 34958 34957   0 10:53上午 ttys000    0:00.61 -zsh
+
+    /bin/zsh
+    ps -ef | grep zsh | grep -v rg
+    501 34958 34957   0 10:53上午 ttys000    0:00.71 -zsh
+    501 35090 34958   0 10:54上午 ttys000    0:00.23 /bin/zsh # 新创建的子进程
+
+    /bin/zsh
+    ps -ef | grep zsh | grep -v rg
+    501 34958 34957   0 10:53上午 ttys000    0:00.71 -zsh
+    501 35090 34958   0 10:54上午 ttys000    0:00.33 /bin/zsh
+    501 35151 35090   0 10:54上午 ttys000    0:00.24 /bin/zsh # 新创建的子进程
+
+    ps -ef | grep rg # rg是ripgrep,作用等同于grep,这里 grep是ripgrep的别名
+    501 35610 35151   0 11:02上午 ttys000    0:00.00 rg rg # 新建的子进程 说明了你在shell执行的命令是shell的子进程
+
+2.逻辑控制
+    1.if
+        语法：
+            if [ a op b ]; then # 所有空格不能省略
+                ...
+            else
+                ...
+            fi
+        逻辑预算: -a = && -o = ||  ! = !
+    2.for
+        语法：
+           for i in {0..10}
+           do
+                echo $i
+           done
+           for str in "abc\nabc"
+           do
+                echo $str
+           done
+
+3.字符串
+    1.声明
+        语法: str="abc"
+        示例：
+            str="沉舟侧畔千帆过,病树前头万木春"
+            echo $str
+    2.拼接字符串
+        语法: "$x$y"
+        示例：
+            str1="沉舟侧畔千帆过"
+            str2="病树前头万木春"
+            str3="$str1,$str2"
+            echo $str3
+            str4='$str1,$str2'
+            echo $str4 #单引号不解析变量
+    3.输出字符串长度
+        语法：${#str}
+        示例：
+            str="沉舟侧畔千帆过,病树前头万木春"
+            echo ${#str}
+    4.截取字符串
+        语法：${str:offset:length}
+        示例：
+            str="沉舟侧畔千帆过,病树前头万木春"
+            str1=${str:0:7}
+            str2=${str:8:15}
+            echo "$str1,$str2"
+    5.字符串运算
+        比较：[ str1 =|!= str2 ]
+        示例：
+            str1="沉舟侧畔千帆过"
+            str2="沉舟侧畔千帆过"
+            if [ $str1 != $str2 -o "abc" = "abc" ]; then
+                echo "相等"
+            else
+                echo "不等"
+            fi
+        检查：
+            长度为0: [ -z str ]
+            长度不为0: [ -n str ]
+            字符串为空(空串或null): [ str ]
+        示例：
+            if [ -z "" -a -n "abc" -a !$abc ];then
+                echo "True"
+            fi
+4.数字
+    1.计算
+        语法： $((a +|-|*|/|% b))
+        示例:
+            echo $(( 1 + 2 ))
+            echo $(( 1 - 2 ))
+            echo $(( 1 * 2 ))
+            echo $(( 1 / 2 ))
+            echo $(( 1 % 2 ))
+    2.比较
+        语法: [ a -eq|-ne|-lt|-gt|-ge|-le b ]
+        if [ 1 -eq 1 -a 1 -ne 2 -a 1 -lt 2 -a 1 -le 1 -a 1 -gt 0 -a 1 -ge 1 ]; then
+            echo "True"
+        fi
+5.数组
+    1.声明
+        语法: arr=(ele1 ele2)
+        示例：
+            arr=(1 2 3 4 5)
+    2.输出长度
+        语法: echo ${#arr[*]}
+        示例：
+            arr=(1 2 3 4 5)
+            echo ${#arr[*]}
+    3.索引
+        语法: $arr[1] # 索引从1开始
+        示例：
+            arr=(1 2 3 4 5)
+            echo $arr[1]
+    4.遍历
+        语法：
+            for i in ${arr[*]}
+            do
+                echo $i
+            done
+    5.删除数组
+        语法: unset arr
+        示例:
+            arr=(1 2 3 4 5)
+            echo $arr
+            unset arr
+            echo $arr
+6.文件
+    1.运算
+        语法：
+            -d 是不是目录
+            -f 是不是文件
+            -r 是否可读
+            -w 是否可写
+            -x 是否可执行
+            -e 是否存在
+            -s 大小是否不为0
+        示例
+            echo "沉舟侧畔千帆过,病树前头万木春" > tmp.txt
+            if [ ! -d "tmp.txt" ]; then
+                echo "不是目录"
+            fi
+            if [ -f "tmp.txt" ]; then
+                echo "是文件"
+            fi
+            if [ -r "tmp.txt" ]; then
+                echo "可读"
+            fi
+            if [ -w "tmp.txt" ]; then
+                echo "可写"
+            fi
+            if [ ! -x "tmp.txt" ]; then
+                echo "不可执行"
+            fi
+            if [ -e "tmp.txt" ]; then
+                echo "存在"
+            fi
+            if [ -s "tmp.txt" ]; then
+                echo "不为空"
+            fi
+7.日期
+    1.格式化
+        语法： date '+%Y-%m-%d %H:%M:%S'
+        示例： date '+%Y-%m-%d %H:%M:%S'
+    2.时间戳(秒)
+        语法：date '+%s'
+        示例：date '+%s'
+8.输入
+    1.标准输入
+        read input
+        echo $input
+9.函数
+    1.无参无返回值
+        function f1(){echo $((1+1))}
+        f1
+    2.有参无返回值
+        function f2(){echo $((1+$1))}
+        f2 100
+    3.有参有返回值 #注意 返回值一般不用return 而是echo
+        function f3(){echo $((1+$1))}
+        num=`f3 100`
+        echo $num
+
